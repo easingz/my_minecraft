@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "shader.h"
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 768
 
@@ -36,6 +37,12 @@ GLFWwindow* create_window() {
     return window;
 }
 
+static const GLfloat g_vertex_buffer_data[] = {
+    -1.0f, -1.0f, 0.0f,
+    1.0f,  -1.0f, 0.0f,
+    0.0f,  1.0f,  0.0f,
+};
+
 int main(int argc, char **argv) {
     // create window
     if (!glfwInit()) {
@@ -53,16 +60,53 @@ int main(int argc, char **argv) {
     }
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
-    
+
+    // Following we only use this vertex array object to handle vertices.
+    // If we don't create one, what happens?
+    // The following gl command won't work?
+    GLuint vertexArrayId;
+    glGenVertexArrays(1, &vertexArrayId);
+    glBindVertexArray(vertexArrayId);
+
+    // first we should generate one buffer for our vertex data to load in.
+    GLuint vertexBuffer;
+    // only one buffer, the second para should be a GLuint* which could store many generated buffers.
+    glGenBuffers(1, &vertexBuffer);
+    // this buffer is for 'vertex' buffer
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    // finally load the vertex data into buffer. What a lot of work...
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+    GLuint programID = LoadShaders("vertex.glsl", "fragment.glsl");
     while (!glfwWindowShouldClose(window)) {
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT);
+        glUseProgram(programID);
+
+        // Now tell OpenGL that we start to handle vertex array.
+        glEnableVertexAttribArray(0);
+        // tell openGl to use this vertex buffer.
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        // tell openGL the structure of this vertex buffer and how to parse it.
+        // Parameter: shader 'layout', size, type, is normalized, stride, offset
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+        // Draw this vertex buffer.
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDisableVertexAttribArray(0);
+
+        // Swap the back buffer with front buffer
         glfwSwapBuffers(window);
         // Get the events, non-block.
         glfwPollEvents();
         // glfwWaitEvents();
     }
 
+    // Cleanup
+    glDeleteBuffers(1, &vertexBuffer);
+    glDeleteVertexArrays(1, &vertexArrayId);
+    glDeleteProgram(programID);
+
+    // close window
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
