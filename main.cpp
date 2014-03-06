@@ -11,6 +11,16 @@
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 768
 #define PI 3.141592653
+
+typedef struct {
+    GLuint vao;
+    GLuint vertex_buffer;
+    GLuint color_buffer;
+    GLuint shader_program;
+    glm::mat4 mvp;
+    unsigned int vertex_size;
+} cube;
+
 static float degree2radian(float d) {
     return d * 2 * PI / 360;
 }
@@ -147,6 +157,61 @@ static const GLfloat g_color_buffer_data[] = {
 };
 
 
+cube* make_cube() {
+    cube* ret_cube = (cube*) malloc(sizeof(cube));
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    ret_cube->vao = vao;
+    GLuint vertex_buf;
+    glGenBuffers(1, &vertex_buf);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buf);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+    GLuint color_buf;
+    glGenBuffers(1, &color_buf);
+    glBindBuffer(GL_ARRAY_BUFFER, color_buf);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+    ret_cube->vertex_buffer = vertex_buf;
+    ret_cube->color_buffer = color_buf;
+    ret_cube->vertex_size = sizeof(g_color_buffer_data)/sizeof(g_color_buffer_data[0]);
+    // TODO: refactor the shader load interface like:
+    // std::vector(GLunit) shaders;
+    // shaders.push_back(loadShader("vertex.glsl"));
+    // shaders.push_back(loadShader("fragment.glsl"));
+    // GLuint program = make_program(shaders);
+    ret_cube->shader_program = LoadShaders("vertex.glsl", "fragment.glsl");
+
+    ret_cube->mvp = getMVPMatrix();
+    glUseProgram(ret_cube->shader_program);
+    GLuint shader_mvp = glGetUniformLocation(ret_cube->shader_program, "MVP");
+    glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &ret_cube->mvp[0][0]);
+
+    GLint vertexLoc = glGetAttribLocation(ret_cube->shader_program, "vertex");
+    GLint colorLoc = glGetAttribLocation(ret_cube->shader_program, "color");
+    glEnableVertexAttribArray(vertexLoc);
+    glBindBuffer(GL_ARRAY_BUFFER, ret_cube->vertex_buffer);
+    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+    glEnableVertexAttribArray(colorLoc);
+    glBindBuffer(GL_ARRAY_BUFFER, ret_cube->color_buffer);
+    glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+    glBindVertexArray(0);
+    return ret_cube;
+}
+
+void draw_cube(cube* c) {
+    glBindVertexArray(c->vao);
+    glDrawArrays(GL_TRIANGLES, 0, c->vertex_size);
+    glBindVertexArray(0);
+}
+
+void delete_cube(cube* c) {
+    glDeleteBuffers(1, &c->vertex_buffer);
+    glDeleteBuffers(1, &c->color_buffer);
+    glDeleteVertexArrays(1, &c->vao);
+    glDeleteProgram(c->shader_program);
+    free(c);
+}
+
 int main(int argc, char **argv) {
     // create window
     if (!glfwInit()) {
@@ -165,82 +230,13 @@ int main(int argc, char **argv) {
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
-    // Following we only use this vertex array object to handle vertices.
-    // If we don't create one, what happens?
-    // The following gl command won't work?
-    GLuint vertexArrayId;
-    glGenVertexArrays(1, &vertexArrayId);
-    glBindVertexArray(vertexArrayId);
-
-    // first we should generate one buffer for our vertex data to load in.
-    GLuint vertexBuffer;
-    // only one buffer, the second para should be a GLuint* which could store many generated buffers.
-    glGenBuffers(1, &vertexBuffer);
-    // this buffer is for 'vertex' buffer
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    // finally load the vertex data into buffer. What a lot of work...
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-    // the color buffer
-    // actually we can alocate an int array to siplify this seperated buffer declaration.
-    GLuint colorBuffer;
-    glGenBuffers(1, &colorBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
-
-    // TODO: refactor the shader load interface like:
-    // std::vector(GLunit) shaders;
-    // shaders.push_back(loadShader("vertex.glsl"));
-    // shaders.push_back(loadShader("fragment.glsl"));
-    // GLuint program = make_program(shaders);
-    GLuint programID = LoadShaders("vertex.glsl", "fragment.glsl");
-
-    glm::mat4 MVP;
-    GLuint shader_mvp = glGetUniformLocation(programID, "MVP");
-
+    cube* cube1 = make_cube();
     // TODO: seperate the render function with this loop, make it a callback or interface.
     while (!glfwWindowShouldClose(window)) {
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(programID);
-        MVP = getMVPMatrix();
-        glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &MVP[0][0]);
-
-
-        // VAO is actually always bound to a geometry, which has vertex, color, normal, lightmap data etc.
-        // VAO can contains several attributes, each one has index assigned.
-        // this index can be vertex shader input through 'attribute' qualifier and glBindAttribLocation().
-        // each attrib index is bound to a buffer.
-        // each buffer contains the actual data which describe the actually vertices, colors etc.
-        // we can have many VAOs, use glBindVertexArray(vaoID) and disable it by glBindVertexArray(0)
-
-        // Here we just have one VAO bound and never changed.
-        // Now tell OpenGL that we start to handle vertex array.
-        // enable the first attribute of VAO
-        // Fuck glsl 1.20, coz there is no 'location' qualifier.
-        GLint vertexLoc = glGetAttribLocation(programID, "vertex");
-        GLint colorLoc = glGetAttribLocation(programID, "color");
-        glEnableVertexAttribArray(vertexLoc);
-        // tell openGl to use this vertex buffer to fill attribute index 0.
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        // tell openGL the structure of this vertex buffer and how to parse it.
-        // Parameter: shader 'layout', size, type, is normalized, stride, offset
-        glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-        // second attribute which describe the color of the geometry.
-        glEnableVertexAttribArray(colorLoc);
-        glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-        glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-
-        // Alternative way to bind index to shader attribute
-        // glBindAttribLocation(programID, 0, "vertex");
-        // glBindAttribLocation(programID, 1, "color");
-        // glLinkProgram(programID);
-
-        // Draw this vertex buffer.
-        glDrawArrays(GL_TRIANGLES, 0, 36);
-        // disable the first attribute
-        glDisableVertexAttribArray(0);
-        glDisableVertexAttribArray(1);
+        draw_cube(cube1);
 
         // Swap the back buffer with front buffer
         glfwSwapBuffers(window);
@@ -250,9 +246,7 @@ int main(int argc, char **argv) {
     }
 
     // Cleanup
-    glDeleteBuffers(1, &vertexBuffer);
-    glDeleteVertexArrays(1, &vertexArrayId);
-    glDeleteProgram(programID);
+    delete_cube(cube1);
 
     // close window
     glfwDestroyWindow(window);
