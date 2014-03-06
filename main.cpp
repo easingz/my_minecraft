@@ -99,11 +99,17 @@ int main(int argc, char **argv) {
     // finally load the vertex data into buffer. What a lot of work...
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
+    // TODO: refactor the shader load interface like:
+    // std::vector(GLunit) shaders;
+    // shaders.push_back(loadShader("vertex.glsl"));
+    // shaders.push_back(loadShader("fragment.glsl"));
+    // GLuint program = make_program(shaders);
     GLuint programID = LoadShaders("vertex.glsl", "fragment.glsl");
 
     glm::mat4 MVP;
     GLuint shader_mvp = glGetUniformLocation(programID, "MVP");
 
+    // TODO: seperate the render function with this loop, make it a callback or interface.
     while (!glfwWindowShouldClose(window)) {
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT);
