@@ -2,12 +2,18 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#define GLM_FORCE_RADIANS
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "shader.h"
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 768
+#define PI 3.141592653
+static float degree2radian(float d) {
+    return d * 2 * PI / 360;
+}
 
 static void error_callback(int error, const char* description)
 {
@@ -35,6 +41,22 @@ GLFWwindow* create_window() {
         exit(1);
     }
     return window;
+}
+
+glm::mat4 getMVPMatrix() {
+    // model --> world
+    // identity matrix, just put the model orgin as the world origin
+    glm::mat4 model = glm::mat4(1.0f);
+    // world --> camera
+    glm::mat4 view = glm::lookAt(
+                                 glm::vec3(4, 3, 3), // Camera is at(4, 3, 3), in world coord.
+                                 glm::vec3(0, 0, 0), // and looks at the origin
+                                 glm::vec3(0, 1, 0) // Head is up
+                                 );
+    // camera --> FoV
+    // 45 degree Field of view, 4:3 ratio, display range: 0.1 unit <-> 100 units
+    glm::mat4 projection = glm::perspective(degree2radian(45.0f), 4.0f/3.0f, 0.1f, 100.0f);
+    return projection * view * model;
 }
 
 static const GLfloat g_vertex_buffer_data[] = {
@@ -78,10 +100,17 @@ int main(int argc, char **argv) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
     GLuint programID = LoadShaders("vertex.glsl", "fragment.glsl");
+
+    glm::mat4 MVP;
+    GLuint shader_mvp = glGetUniformLocation(programID, "MVP");
+
     while (!glfwWindowShouldClose(window)) {
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT);
+
         glUseProgram(programID);
+        MVP = getMVPMatrix();
+        glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &MVP[0][0]);
 
         // Now tell OpenGL that we start to handle vertex array.
         glEnableVertexAttribArray(0);
