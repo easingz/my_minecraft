@@ -1,5 +1,6 @@
 #version 130
+in vec3 fragment_color;
 out vec3 color;
 void main() {
-     color = vec3(1,0,0);
+     color = fragment_color;
 }

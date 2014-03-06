@@ -1,7 +1,9 @@
 #version 130
-in vec3 v;
+in vec3 vertex;
+in vec3 color;
 uniform mat4 MVP;
+out vec3 fragment_color;
 void main() {
-     vec4 v = vec4(v, 1);
-     gl_Position = MVP * v;
+     gl_Position = MVP * vec4(vertex, 1);
+     fragment_color = color;
 }
