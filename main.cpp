@@ -17,7 +17,6 @@ typedef struct {
     GLuint vertex_buffer;
     GLuint color_buffer;
     GLuint shader_program;
-    glm::mat4 mvp;
     unsigned int vertex_size;
 } cube;
 
@@ -53,13 +52,13 @@ GLFWwindow* create_window() {
     return window;
 }
 
-glm::mat4 getMVPMatrix() {
+glm::mat4 getMVPMatrix(glm::vec3 world_coord) {
     // model --> world
     // identity matrix, just put the model orgin as the world origin
-    glm::mat4 model = glm::mat4(1.0f);
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), world_coord);
     // world --> camera
     glm::mat4 view = glm::lookAt(
-                                 glm::vec3(4, 3, 3), // Camera is at(4, 3, 3), in world coord.
+                                 glm::vec3(0, 0, 50), // Camera position in world coord.
                                  glm::vec3(0, 0, 0), // and looks at the origin
                                  glm::vec3(0, 1, 0) // Head is up
                                  );
@@ -181,11 +180,6 @@ cube* make_cube() {
     // GLuint program = make_program(shaders);
     ret_cube->shader_program = LoadShaders("vertex.glsl", "fragment.glsl");
 
-    ret_cube->mvp = getMVPMatrix();
-    glUseProgram(ret_cube->shader_program);
-    GLuint shader_mvp = glGetUniformLocation(ret_cube->shader_program, "MVP");
-    glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &ret_cube->mvp[0][0]);
-
     GLint vertexLoc = glGetAttribLocation(ret_cube->shader_program, "vertex");
     GLint colorLoc = glGetAttribLocation(ret_cube->shader_program, "color");
     glEnableVertexAttribArray(vertexLoc);
@@ -198,7 +192,12 @@ cube* make_cube() {
     return ret_cube;
 }
 
-void draw_cube(cube* c) {
+void draw_cube(cube* c, glm::vec3 world_coord) {
+    // need do the transformation in render function.
+    glUseProgram(c->shader_program);
+    GLuint shader_mvp = glGetUniformLocation(c->shader_program, "MVP");
+    glm::mat4 mvp = getMVPMatrix(world_coord);
+    glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &mvp[0][0]);
     glBindVertexArray(c->vao);
     glDrawArrays(GL_TRIANGLES, 0, c->vertex_size);
     glBindVertexArray(0);
@@ -236,7 +235,9 @@ int main(int argc, char **argv) {
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        draw_cube(cube1);
+        for (int i = 0; i < 33; i+=3)
+            for (int j = 0; j < 33; j+=3)
+                draw_cube(cube1, glm::vec3(i - 16, j - 16, 0));
 
         // Swap the back buffer with front buffer
         glfwSwapBuffers(window);
