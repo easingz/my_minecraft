@@ -8,21 +8,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "shader.h"
+#include "util.h"
+
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 768
-#define PI 3.141592653
+#define PI 3.14159265359
+#define RADIAN(degree) (float)((degree) * PI / 180)
 
 typedef struct {
     GLuint vao;
     GLuint vertex_buffer;
     GLuint color_buffer;
+    GLuint texture_buffer;
     GLuint shader_program;
     unsigned int vertex_size;
 } cube;
-
-static float degree2radian(float d) {
-    return d * 2 * PI / 360;
-}
 
 static void error_callback(int error, const char* description)
 {
@@ -64,7 +64,7 @@ glm::mat4 getMVPMatrix(glm::vec3 world_coord) {
                                  );
     // camera --> FoV
     // 45 degree Field of view, 4:3 ratio, display range: 0.1 unit <-> 100 units
-    glm::mat4 projection = glm::perspective(degree2radian(45.0f), 4.0f/3.0f, 0.1f, 100.0f);
+    glm::mat4 projection = glm::perspective(RADIAN(45.0f), 4.0f/3.0f, 0.1f, 100.0f);
     return projection * view * model;
 }
 
@@ -155,6 +155,41 @@ static const GLfloat g_color_buffer_data[] = {
     0.982f,  0.099f,  0.879f
 };
 
+static const GLfloat g_uv_buffer_data[] = {
+    1.0f, 0.0f,
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    1.0f, 1.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    1.0f, 1.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    1.0f, 1.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    1.0f, 1.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+};
 
 cube* make_cube() {
     cube* ret_cube = (cube*) malloc(sizeof(cube));
@@ -162,32 +197,58 @@ cube* make_cube() {
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
     ret_cube->vao = vao;
+
     GLuint vertex_buf;
     glGenBuffers(1, &vertex_buf);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buf);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-    GLuint color_buf;
-    glGenBuffers(1, &color_buf);
-    glBindBuffer(GL_ARRAY_BUFFER, color_buf);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
     ret_cube->vertex_buffer = vertex_buf;
-    ret_cube->color_buffer = color_buf;
     ret_cube->vertex_size = sizeof(g_color_buffer_data)/sizeof(g_color_buffer_data[0]);
+
+    // GLuint color_buf;
+    // glGenBuffers(1, &color_buf);
+    // glBindBuffer(GL_ARRAY_BUFFER, color_buf);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+    // ret_cube->color_buffer = color_buf;
+
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    load_png_texture("texture.png");
+
+    GLuint uv_buf;
+    glGenBuffers(1, &uv_buf);
+    glBindBuffer(GL_ARRAY_BUFFER, uv_buf);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_buffer_data), g_uv_buffer_data, GL_STATIC_DRAW);
+    ret_cube->texture_buffer = uv_buf;
+
     // TODO: refactor the shader load interface like:
     // std::vector(GLunit) shaders;
     // shaders.push_back(loadShader("vertex.glsl"));
     // shaders.push_back(loadShader("fragment.glsl"));
     // GLuint program = make_program(shaders);
     ret_cube->shader_program = LoadShaders("vertex.glsl", "fragment.glsl");
+    GLuint shader_sampler = glGetUniformLocation(ret_cube->shader_program, "sampler");
+    glUniform1i(shader_sampler, 0);
 
     GLint vertexLoc = glGetAttribLocation(ret_cube->shader_program, "vertex");
-    GLint colorLoc = glGetAttribLocation(ret_cube->shader_program, "color");
     glEnableVertexAttribArray(vertexLoc);
     glBindBuffer(GL_ARRAY_BUFFER, ret_cube->vertex_buffer);
     glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-    glEnableVertexAttribArray(colorLoc);
-    glBindBuffer(GL_ARRAY_BUFFER, ret_cube->color_buffer);
-    glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+
+    // GLint colorLoc = glGetAttribLocation(ret_cube->shader_program, "color");
+    // glEnableVertexAttribArray(colorLoc);
+    // glBindBuffer(GL_ARRAY_BUFFER, ret_cube->color_buffer);
+    // glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
+
+    GLint uvLoc = glGetAttribLocation(ret_cube->shader_program, "uv");
+    glEnableVertexAttribArray(uvLoc);
+    glBindBuffer(GL_ARRAY_BUFFER, ret_cube->texture_buffer);
+    glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
     glBindVertexArray(0);
     return ret_cube;
 }
