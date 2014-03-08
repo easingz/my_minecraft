@@ -76,43 +76,82 @@ glm::mat4 getMVPMatrix(glm::vec3 world_coord) {
 
 // Our vertices. Tree consecutive floats give a 3D vertex; Three consecutive vertices give a triangle.
 // A cube has 6 faces with 2 triangles each, so this makes 6*2=12 triangles, and 12*3 vertices
+// static const GLfloat g_vertex_buffer_data[] = {
+//     -1.0f,-1.0f,-1.0f,
+//     -1.0f,-1.0f, 1.0f,
+//     -1.0f, 1.0f, 1.0f,
+//     1.0f, 1.0f,-1.0f,
+//     -1.0f,-1.0f,-1.0f,
+//     -1.0f, 1.0f,-1.0f,
+//     1.0f,-1.0f, 1.0f,
+//     -1.0f,-1.0f,-1.0f,
+//     1.0f,-1.0f,-1.0f,
+//     1.0f, 1.0f,-1.0f,
+//     1.0f,-1.0f,-1.0f,
+//     -1.0f,-1.0f,-1.0f,
+//     -1.0f,-1.0f,-1.0f,
+//     -1.0f, 1.0f, 1.0f,
+//     -1.0f, 1.0f,-1.0f,
+//     1.0f,-1.0f, 1.0f,
+//     -1.0f,-1.0f, 1.0f,
+//     -1.0f,-1.0f,-1.0f,
+//     -1.0f, 1.0f, 1.0f,
+//     -1.0f,-1.0f, 1.0f,
+//     1.0f,-1.0f, 1.0f,
+//     1.0f, 1.0f, 1.0f,
+//     1.0f,-1.0f,-1.0f,
+//     1.0f, 1.0f,-1.0f,
+//     1.0f,-1.0f,-1.0f,
+//     1.0f, 1.0f, 1.0f,
+//     1.0f,-1.0f, 1.0f,
+//     1.0f, 1.0f, 1.0f,
+//     1.0f, 1.0f,-1.0f,
+//     -1.0f, 1.0f,-1.0f,
+//     1.0f, 1.0f, 1.0f,
+//     -1.0f, 1.0f,-1.0f,
+//     -1.0f, 1.0f, 1.0f,
+//     1.0f, 1.0f, 1.0f,
+//     -1.0f, 1.0f, 1.0f,
+//     1.0f,-1.0f, 1.0f
+// };
+
 static const GLfloat g_vertex_buffer_data[] = {
-    -1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f, 1.0f,
+    1.0f, -1.0f, 1.0f,
+    -1.0f, -1.0f, 1.0f,
     -1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
+    -1.0f, -1.0f, 1.0f,
+    -1.0f, -1.0f, -1.0f,
+    -1.0f, 1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f, -1.0f,
+    -1.0f, 1.0f, -1.0f,
     1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f,-1.0f,
-    1.0f, 1.0f,-1.0f,
-    1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f, 1.0f, 
+    -1.0f, 1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f,
+    1.0f, -1.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
+    -1.0f, -1.0f, -1.0f,
     1.0f, 1.0f, 1.0f,
     -1.0f, 1.0f, 1.0f,
-    1.0f,-1.0f, 1.0f
+    1.0f, -1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, -1.0f,
+    -1.0f, -1.0f, 1.0f,
+    1.0f, 1.0f, -1.0f,
+    -1.0f, 1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    1.0f, 1.0f, -1.0f,
+    -1.0f, 1.0f, -1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, -1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, 1.0f,
 };
 
 // One color for each vertex. They were generated randomly.
@@ -189,6 +228,9 @@ static const GLfloat g_uv_buffer_data[] = {
     1.0f, 1.0f,
     0.0f, 1.0f,
     1.0f, 0.0f,
+    1.0f, 1.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
 };
 
 cube* make_cube() {
@@ -244,7 +286,7 @@ cube* make_cube() {
     // glBindBuffer(GL_ARRAY_BUFFER, ret_cube->color_buffer);
     // glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-    GLint uvLoc = glGetAttribLocation(ret_cube->shader_program, "uv");
+    GLint uvLoc = glGetAttribLocation(ret_cube->shader_program, "vertexUV");
     glEnableVertexAttribArray(uvLoc);
     glBindBuffer(GL_ARRAY_BUFFER, ret_cube->texture_buffer);
     glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
@@ -260,7 +302,7 @@ void draw_cube(cube* c, glm::vec3 world_coord) {
     glm::mat4 mvp = getMVPMatrix(world_coord);
     glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &mvp[0][0]);
     glBindVertexArray(c->vao);
-    glDrawArrays(GL_TRIANGLES, 0, c->vertex_size);
+    glDrawArrays(GL_TRIANGLES, 0, 36/* c->vertex_size */);
     glBindVertexArray(0);
 }
 
@@ -298,7 +340,9 @@ int main(int argc, char **argv) {
 
         for (int i = 0; i < 33; i+=3)
             for (int j = 0; j < 33; j+=3)
-                draw_cube(cube1, glm::vec3(i - 16, j - 16, 0));
+                for (int k = 0; k < 33; k+=3)
+                draw_cube(cube1, glm::vec3(i - 16, j - 16, k - 16));
+        // draw_cube(cube1, glm::vec3(-4, 0, 0));
 
         // Swap the back buffer with front buffer
         glfwSwapBuffers(window);
