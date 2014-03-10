@@ -12,8 +12,7 @@
 
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 768
-#define PI 3.14159265359
-#define RADIAN(degree) (float)((degree) * PI / 180)
+GLFWwindow* window = NULL;
 
 typedef struct {
     GLuint vao;
@@ -53,18 +52,14 @@ GLFWwindow* create_window() {
 }
 
 glm::mat4 getMVPMatrix(glm::vec3 world_coord) {
+    computeMatricesFromInputs();
     // model --> world
     // identity matrix, just put the model orgin as the world origin
     glm::mat4 model = glm::translate(glm::mat4(1.0f), world_coord);
     // world --> camera
-    glm::mat4 view = glm::lookAt(
-                                 glm::vec3(0, 0, 50), // Camera position in world coord.
-                                 glm::vec3(0, 0, 0), // and looks at the origin
-                                 glm::vec3(0, 1, 0) // Head is up
-                                 );
+    glm::mat4 view = getViewMatrix();
     // camera --> FoV
-    // 45 degree Field of view, 4:3 ratio, display range: 0.1 unit <-> 100 units
-    glm::mat4 projection = glm::perspective(RADIAN(45.0f), 4.0f/3.0f, 0.1f, 100.0f);
+    glm::mat4 projection = getProjectionMatrix();
     return projection * view * model;
 }
 
@@ -309,6 +304,7 @@ void draw_cube(cube* c, glm::vec3 world_coord) {
 void delete_cube(cube* c) {
     glDeleteBuffers(1, &c->vertex_buffer);
     glDeleteBuffers(1, &c->color_buffer);
+    glDeleteTextures(1, &c->texture_buffer);
     glDeleteVertexArrays(1, &c->vao);
     glDeleteProgram(c->shader_program);
     free(c);
@@ -320,7 +316,7 @@ int main(int argc, char **argv) {
         return -1;
     }
     glfwSetErrorCallback(error_callback);
-    GLFWwindow* window = create_window();
+    window = create_window();
     // Set 'window' as the opengl context
     glfwMakeContextCurrent(window);
 
@@ -331,6 +327,7 @@ int main(int argc, char **argv) {
     }
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    glEnable(GL_CULL_FACE);
 
     cube* cube1 = make_cube();
     // TODO: seperate the render function with this loop, make it a callback or interface.
@@ -338,10 +335,10 @@ int main(int argc, char **argv) {
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        for (int i = 0; i < 33; i+=3)
-            for (int j = 0; j < 33; j+=3)
-                for (int k = 0; k < 33; k+=3)
-                draw_cube(cube1, glm::vec3(i - 16, j - 16, k - 16));
+        for (int i = 0; i < 33; i+=6)
+            for (int j = 0; j < 33; j+=6)
+                for (int k = 0; k < 33; k+=6)
+                    draw_cube(cube1, glm::vec3(i - 16, j - 16, k - 16));
         // draw_cube(cube1, glm::vec3(-4, 0, 0));
 
         // Swap the back buffer with front buffer
