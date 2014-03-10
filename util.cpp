@@ -40,9 +40,9 @@ void my_scrollCallback(GLFWwindow* w, double x, double y){
 
 void initPlayControl() {
     // Initial position : on +Z
-    position = glm::vec3( 0, 0, 20 );
+    position = glm::vec3( 0, 0, 30 );
     // Initial horizontal angle : toward -Z
-    horizontalAngle = 0.0f;
+    horizontalAngle = 3.14f;
     // Initial vertical angle : none
     verticalAngle = 0.0f;
     // Initial Field of View
@@ -72,6 +72,10 @@ void computeMatricesFromInputs(){
         // Compute new orientation
         horizontalAngle += mouseSpeed * float(1024/2 - xpos );
         verticalAngle   += mouseSpeed * float( 768/2 - ypos );
+
+        // lock it to disable upside-down.
+        if (verticalAngle >= 3.14f/2) verticalAngle = 3.14f/2;
+        if (verticalAngle <= -3.14f/2) verticalAngle = -3.14f/2;
 
         // Direction : Spherical coordinates to Cartesian coordinates conversion
         glm::vec3 viewZ_neg(

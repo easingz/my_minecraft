@@ -117,15 +117,7 @@ static const GLfloat g_vertex_buffer_data[] = {
 
     -1.0f, -1.0f, 1.0f,
     -1.0f, -1.0f, -1.0f,
-    -1.0f, 1.0f, 1.0f,
-
-    -1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-
-    // 1.0f, -1.0f, -1.0f,
-    // -1.0f, -1.0f, -1.0f,
-    // -1.0f, 1.0f, -1.0f,
+    -1.0f, 1.0f, -1.0f,
 
     1.0f, 1.0f, 1.0f,
     -1.0f, 1.0f, 1.0f, 
@@ -135,6 +127,10 @@ static const GLfloat g_vertex_buffer_data[] = {
     1.0f, -1.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
 
+    -1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    1.0f, 1.0f, -1.0f,
+
     1.0f, -1.0f, -1.0f,
     -1.0f, -1.0f, -1.0f,
     -1.0f, -1.0f, 1.0f,
@@ -143,33 +139,29 @@ static const GLfloat g_vertex_buffer_data[] = {
     // 1.0f, 1.0f, 1.0f,
     // -1.0f, -1.0f, -1.0f,
 
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
     1.0f, -1.0f, 1.0f,
-
     -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, -1.0f,
+    1.0f, 1.0f, 1.0f,
+
     -1.0f, -1.0f, 1.0f,
-
     -1.0f, 1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
+    -1.0f, 1.0f, 1.0f,
+
     -1.0f, -1.0f, -1.0f,
-
-    // 1.0f, 1.0f, -1.0f,
-    // -1.0f, 1.0f, -1.0f,
-    // 1.0f, -1.0f, -1.0f,
-
     1.0f, 1.0f, -1.0f,
     -1.0f, 1.0f, -1.0f,
-    1.0f, 1.0f, 1.0f,
 
-    1.0f, 1.0f, -1.0f,
     1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, -1.0f,
+    1.0f, 1.0f, -1.0f,
+
     1.0f, -1.0f, -1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, -1.0f,
 
-    1.0f, -1.0f, 1.0f,
+    1.0f, -1.0f, -1.0f,
     -1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, 1.0f,    
 };
 
 // One color for each vertex. They were generated randomly.
@@ -231,24 +223,25 @@ static const GLfloat g_uv_buffer_data[] = {
     1.0f, 0.0f,
     0.0f, 0.0f,
     0.0f, 1.0f,
-    1.0f, 1.0f,
-    0.0f, 1.0f,
+
     1.0f, 0.0f,
-    1.0f, 1.0f,
     0.0f, 1.0f,
-    1.0f, 0.0f,
     1.0f, 1.0f,
-    0.0f, 1.0f,
     1.0f, 0.0f,
+    0.0f, 1.0f,
     1.0f, 1.0f,
-    0.0f, 1.0f,
     1.0f, 0.0f,
+    0.0f, 1.0f,
     1.0f, 1.0f,
-    0.0f, 1.0f,
     1.0f, 0.0f,
+    0.0f, 1.0f,
     1.0f, 1.0f,
-    0.0f, 1.0f,
     1.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
 };
 
 cube* make_cube() {
@@ -334,9 +327,9 @@ void delete_cube(cube* c) {
 }
 
 void draw_cubes(cube* c) {
-    for (int i = 0; i < 33; i+=12)
-        for (int j = 0; j < 33; j+=12)
-            for (int k = 0; k < 33; k+=12)
+    for (int i = 0; i < 33; i+=6)
+        for (int j = 0; j < 33; j+=6)
+            for (int k = 0; k < 33; k+=6)
                 draw_cube(c, glm::vec3(i - 16, j - 16, k - 16));
     // draw_cube(c, glm::vec3(0, 0, 0));
 }
@@ -359,14 +352,17 @@ int main(int argc, char **argv) {
 
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     initPlayControl();
-    //glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CW);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
 
     cube* cube1 = make_cube();
 
     //////////// Main Loop ////////////
     while (!glfwWindowShouldClose(window)) {
         glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
         draw_cubes(cube1);
 
