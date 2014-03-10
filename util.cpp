@@ -32,12 +32,10 @@ glm::mat4 getProjectionMatrix(){
 }
 
 glm::vec3 position;
-float horizontalAngle, verticalAngle, initialFoV, speed, mouseSpeed;
-double xZoom, yZoom;
+float horizontalAngle, verticalAngle, FoV, speed, mouseSpeed;
 
-void my_scroollCallback(GLFWwindow* w, double x, double y){
-    xZoom = x;
-    yZoom = y;
+void my_scrollCallback(GLFWwindow* w, double x, double y){
+    FoV = FoV - 0.1 * y;
 }
 
 void initPlayControl() {
@@ -48,12 +46,11 @@ void initPlayControl() {
     // Initial vertical angle : none
     verticalAngle = 0.0f;
     // Initial Field of View
-    initialFoV = 45.0f;
+    FoV = 45.0f;
 
     speed = 3.0f; // 3 units / second
     mouseSpeed = 0.005f;
-    xZoom = yZoom = 0.0f;
-    glfwSetScrollCallback(window, my_scroollCallback);
+    glfwSetScrollCallback(window, my_scrollCallback);
 }
 
 void computeMatricesFromInputs(){
@@ -109,8 +106,6 @@ void computeMatricesFromInputs(){
         if (glfwGetKey( window, GLFW_KEY_A ) == GLFW_PRESS){
                 position -= viewX * deltaTime * speed;
         }
-
-        float FoV = initialFoV - 0.1 * yZoom; // Now GLFW 3 requires setting up a callback for this. It's a bit too complicated for this beginner's tutorial, so it's disabled instead.
 
         // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
         ProjectionMatrix = glm::perspective(FoV, 4.0f / 3.0f, 0.1f, 100.0f);
