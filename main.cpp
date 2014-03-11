@@ -20,6 +20,7 @@ typedef struct {
     GLuint color_buffer;
     GLuint texture_buffer;
     GLuint shader_program;
+    GLuint shader_mvp;
     unsigned int vertex_size;
 } cube;
 
@@ -61,53 +62,6 @@ glm::mat4 getMVPMatrix(glm::vec3 world_coord) {
     glm::mat4 projection = getProjectionMatrix();
     return projection * view * model;
 }
-
-// static const GLfloat g_vertex_buffer_data[] = {
-//     -1.0f, -1.0f, 0.0f,
-//     1.0f,  -1.0f, 0.0f,
-//     0.0f,  1.0f,  0.0f,
-// };
-
-// Our vertices. Tree consecutive floats give a 3D vertex; Three consecutive vertices give a triangle.
-// A cube has 6 faces with 2 triangles each, so this makes 6*2=12 triangles, and 12*3 vertices
-// static const GLfloat g_vertex_buffer_data[] = {
-//     -1.0f,-1.0f,-1.0f,
-//     -1.0f,-1.0f, 1.0f,
-//     -1.0f, 1.0f, 1.0f,
-//     1.0f, 1.0f,-1.0f,
-//     -1.0f,-1.0f,-1.0f,
-//     -1.0f, 1.0f,-1.0f,
-//     1.0f,-1.0f, 1.0f,
-//     -1.0f,-1.0f,-1.0f,
-//     1.0f,-1.0f,-1.0f,
-//     1.0f, 1.0f,-1.0f,
-//     1.0f,-1.0f,-1.0f,
-//     -1.0f,-1.0f,-1.0f,
-//     -1.0f,-1.0f,-1.0f,
-//     -1.0f, 1.0f, 1.0f,
-//     -1.0f, 1.0f,-1.0f,
-//     1.0f,-1.0f, 1.0f,
-//     -1.0f,-1.0f, 1.0f,
-//     -1.0f,-1.0f,-1.0f,
-//     -1.0f, 1.0f, 1.0f,
-//     -1.0f,-1.0f, 1.0f,
-//     1.0f,-1.0f, 1.0f,
-//     1.0f, 1.0f, 1.0f,
-//     1.0f,-1.0f,-1.0f,
-//     1.0f, 1.0f,-1.0f,
-//     1.0f,-1.0f,-1.0f,
-//     1.0f, 1.0f, 1.0f,
-//     1.0f,-1.0f, 1.0f,
-//     1.0f, 1.0f, 1.0f,
-//     1.0f, 1.0f,-1.0f,
-//     -1.0f, 1.0f,-1.0f,
-//     1.0f, 1.0f, 1.0f,
-//     -1.0f, 1.0f,-1.0f,
-//     -1.0f, 1.0f, 1.0f,
-//     1.0f, 1.0f, 1.0f,
-//     -1.0f, 1.0f, 1.0f,
-//     1.0f,-1.0f, 1.0f
-// };
 
 static const GLfloat g_vertex_buffer_data[] = {
     1.0f, -1.0f, 1.0f,
@@ -243,7 +197,93 @@ static const GLfloat g_uv_buffer_data[] = {
     1.0f, 1.0f,
 };
 
+#define BLOCK_LEN 1.0f/16.0f
+
+static const GLfloat g_cube_uv_buf_data_base[] = {
+    BLOCK_LEN, 0.0f,
+    0.0f, 0.0f,
+    0.0f, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, 0.0f,
+    0.0f, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, 0.0f,
+    0.0f, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, 0.0f,
+    0.0f, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, 0.0f,
+    0.0f, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, 0.0f,
+    0.0f, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, BLOCK_LEN,
+    BLOCK_LEN, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, BLOCK_LEN,
+    BLOCK_LEN, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, BLOCK_LEN,
+    BLOCK_LEN, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, BLOCK_LEN,
+    BLOCK_LEN, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, BLOCK_LEN,
+    BLOCK_LEN, BLOCK_LEN,
+
+    BLOCK_LEN, 0.0f,
+    0.0f, BLOCK_LEN,
+    BLOCK_LEN, BLOCK_LEN,
+};
+
+GLuint load_cube_texture() {
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    load_png_texture("./textures/texture.png");
+    return textureID;
+}
+
+GLfloat* gen_cube_uv() {
+    // printf("start generate cube uv.\n");
+    int texture_count = 16;
+    int uv_count = sizeof(g_cube_uv_buf_data_base)/sizeof(g_cube_uv_buf_data_base[0]);
+    GLfloat* cube_uv_array = (GLfloat*)malloc(texture_count * sizeof(g_cube_uv_buf_data_base));
+    // printf("%d %d\n", (int)sizeof(g_cube_uv_buf_data_base), (int)sizeof(g_cube_uv_buf_data_base[0]));
+    for (int i = 0; i < texture_count; i++) {
+        // printf("#####: texture uv %d \n", i);
+        for (int j = 0; j < uv_count;) {
+            // uv.x
+            cube_uv_array[i*uv_count + j] = g_cube_uv_buf_data_base[j] + i * BLOCK_LEN;
+            j++;
+            // uv.y
+            cube_uv_array[i*uv_count + j] = g_cube_uv_buf_data_base[j];
+            j++;
+            // printf("       %f %f\n", cube_uv_array[i*uv_count + j - 2], cube_uv_array[i*uv_count + j -1]);
+        }
+    }
+    // printf("cube uv generated!\n");
+    return cube_uv_array;
+}
+
 cube* make_cube() {
+    // printf("start make cube");
     cube* ret_cube = (cube*) malloc(sizeof(cube));
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -255,26 +295,11 @@ cube* make_cube() {
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buf);
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
     ret_cube->vertex_buffer = vertex_buf;
-    ret_cube->vertex_size = sizeof(g_color_buffer_data)/sizeof(g_color_buffer_data[0]);
-
-    // GLuint color_buf;
-    // glGenBuffers(1, &color_buf);
-    // glBindBuffer(GL_ARRAY_BUFFER, color_buf);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
-    // ret_cube->color_buffer = color_buf;
-
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    load_png_texture("texture.png");
+    ret_cube->vertex_size = sizeof(g_vertex_buffer_data)/sizeof(g_vertex_buffer_data[0]);
 
     GLuint uv_buf;
     glGenBuffers(1, &uv_buf);
     glBindBuffer(GL_ARRAY_BUFFER, uv_buf);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_uv_buffer_data), g_uv_buffer_data, GL_STATIC_DRAW);
     ret_cube->texture_buffer = uv_buf;
 
     // TODO: refactor the shader load interface like:
@@ -283,7 +308,10 @@ cube* make_cube() {
     // shaders.push_back(loadShader("fragment.glsl"));
     // GLuint program = make_program(shaders);
     ret_cube->shader_program = LoadShaders("vertex.glsl", "fragment.glsl");
+    ret_cube->shader_mvp = glGetUniformLocation(ret_cube->shader_program, "MVP");
+
     GLuint shader_sampler = glGetUniformLocation(ret_cube->shader_program, "sampler");
+    // TODO: don't hardcode texture index. using a map like data structure to manage them.
     glUniform1i(shader_sampler, 0);
 
     GLint vertexLoc = glGetAttribLocation(ret_cube->shader_program, "vertex");
@@ -291,27 +319,30 @@ cube* make_cube() {
     glBindBuffer(GL_ARRAY_BUFFER, ret_cube->vertex_buffer);
     glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-    // GLint colorLoc = glGetAttribLocation(ret_cube->shader_program, "color");
-    // glEnableVertexAttribArray(colorLoc);
-    // glBindBuffer(GL_ARRAY_BUFFER, ret_cube->color_buffer);
-    // glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
-
     GLint uvLoc = glGetAttribLocation(ret_cube->shader_program, "vertexUV");
     glEnableVertexAttribArray(uvLoc);
     glBindBuffer(GL_ARRAY_BUFFER, ret_cube->texture_buffer);
     glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     glBindVertexArray(0);
+    // printf("make cube done!\n");
     return ret_cube;
 }
 
-void draw_cube(cube* c, glm::vec3 world_coord) {
+void draw_cube(cube* c, glm::vec3 world_coord, const GLfloat* texture_uv_buf, const GLint buf_size) {
     // need do the transformation in render function.
-    glUseProgram(c->shader_program);
-    GLuint shader_mvp = glGetUniformLocation(c->shader_program, "MVP");
-    glm::mat4 mvp = getMVPMatrix(world_coord);
-    glUniformMatrix4fv(shader_mvp, 1, GL_FALSE, &mvp[0][0]);
+    glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(c->vao);
+
+    // TODO: the uniform index should also be an member of struct cube. no need to query here every time.
+    glUseProgram(c->shader_program);
+    glm::mat4 mvp = getMVPMatrix(world_coord);
+    glUniformMatrix4fv(c->shader_mvp, 1, GL_FALSE, &mvp[0][0]);
+
+    // Dynamically bind cube texture.
+    glBindBuffer(GL_ARRAY_BUFFER, c->texture_buffer);
+    glBufferData(GL_ARRAY_BUFFER, buf_size, texture_uv_buf, GL_STATIC_DRAW);
+
     glDrawArrays(GL_TRIANGLES, 0, c->vertex_size);
     glBindVertexArray(0);
 }
@@ -325,11 +356,13 @@ void delete_cube(cube* c) {
     free(c);
 }
 
-void draw_cubes(cube* c) {
+void draw_cubes(cube* c, GLfloat* cube_textures) {
     for (int i = 0; i < 33; i+=6)
         for (int j = 0; j < 33; j+=6)
-            for (int k = 0; k < 33; k+=6)
-                draw_cube(c, glm::vec3(i - 16, j - 16, k - 16));
+            for (int k = 0; k < 33; k+=6) {
+                draw_cube(c, glm::vec3(i - 16, j - 16, k - 16), cube_textures+((i+j+k)%16)*72, sizeof(g_cube_uv_buf_data_base));
+                // draw_cube(c, glm::vec3(i - 16, j - 16, k - 16), g_cube_uv_buf_data_base, sizeof(g_cube_uv_buf_data_base));
+            }
     // draw_cube(c, glm::vec3(0, 0, 0));
 }
 
@@ -358,13 +391,15 @@ int main(int argc, char **argv) {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    cube* cube1 = make_cube();
+    load_cube_texture();
+    GLfloat* cube_textures = gen_cube_uv();
+    cube* c = make_cube();
 
     //////////// Main Loop ////////////
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-        draw_cubes(cube1);
+        draw_cubes(c, cube_textures);
 
         glfwSwapBuffers(window);
         // Get the events, non-block.
@@ -374,7 +409,8 @@ int main(int argc, char **argv) {
     //////////// Loop End /////////////
 
     // Cleanup
-    delete_cube(cube1);
+    delete_cube(c);
+    free(cube_textures);
 
     // close window
     glfwDestroyWindow(window);
