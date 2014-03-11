@@ -33,9 +33,14 @@ glm::mat4 getProjectionMatrix(){
 
 glm::vec3 position;
 float horizontalAngle, verticalAngle, FoV, speed, mouseSpeed;
+int width, height;
 
 void my_scrollCallback(GLFWwindow* w, double x, double y){
     FoV = FoV - 0.1 * y;
+}
+
+void my_windowSizeCallback(GLFWwindow* win, int w, int h) {
+    width = w; height = h;
 }
 
 void initPlayControl() {
@@ -47,11 +52,14 @@ void initPlayControl() {
     verticalAngle = 0.0f;
     // Initial Field of View
     FoV = 45.0f;
-
     speed = 3.0f; // 3 units / second
     mouseSpeed = 0.005f;
+    glfwGetWindowSize(window, &width, &height);
     glfwSetScrollCallback(window, my_scrollCallback);
+    glfwSetWindowSizeCallback(window, my_windowSizeCallback);
 }
+
+
 
 void computeMatricesFromInputs(){
 
@@ -67,11 +75,13 @@ void computeMatricesFromInputs(){
         glfwGetCursorPos(window, &xpos, &ypos);
 
         // Reset mouse position for next frame
-        glfwSetCursorPos(window, 1024/2, 768/2);
+        glfwSetCursorPos(window, width/2, height/2);
 
         // Compute new orientation
-        horizontalAngle += mouseSpeed * float(1024/2 - xpos );
-        verticalAngle   += mouseSpeed * float( 768/2 - ypos );
+        horizontalAngle += mouseSpeed * float( width/2 - xpos );
+        verticalAngle   += mouseSpeed * float( height/2 - ypos );
+
+        printf("xpos: %f ypos: %f h: %f v %f\n", xpos, ypos, horizontalAngle, verticalAngle);
 
         // lock it to disable upside-down.
         if (verticalAngle >= 3.14f/2) verticalAngle = 3.14f/2;
