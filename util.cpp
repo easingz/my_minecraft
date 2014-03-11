@@ -55,6 +55,7 @@ void initPlayControl() {
     speed = 3.0f; // 3 units / second
     mouseSpeed = 0.005f;
     glfwGetWindowSize(window, &width, &height);
+    glfwSetCursorPos(window, width/2.0f, height/2.0f);
     glfwSetScrollCallback(window, my_scrollCallback);
     glfwSetWindowSizeCallback(window, my_windowSizeCallback);
 }
@@ -77,11 +78,17 @@ void computeMatricesFromInputs(){
         // Reset mouse position for next frame
         glfwSetCursorPos(window, width/2, height/2);
 
+        // WORKAROUND: glfwGetCursorPos() bug...
+        // See https://github.com/glfw/glfw/issues/129
+        // If they are all zeros, the camera is spinning at the beginning until cursor moves.
+        if (xpos == 0.0f && ypos == 0.0f) return;
+
         // Compute new orientation
         horizontalAngle += mouseSpeed * float( width/2 - xpos );
         verticalAngle   += mouseSpeed * float( height/2 - ypos );
 
-        printf("xpos: %f ypos: %f h: %f v %f\n", xpos, ypos, horizontalAngle, verticalAngle);
+        // TODO: add log function for debug.
+        // printf("w: %d h: %d xpos: %f ypos: %f h: %f v %f\n", width, height, xpos, ypos, horizontalAngle, verticalAngle);
 
         // lock it to disable upside-down.
         if (verticalAngle >= 3.14f/2) verticalAngle = 3.14f/2;

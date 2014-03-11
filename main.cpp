@@ -43,7 +43,7 @@ GLFWwindow* create_window() {
     // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     // What's this....
     // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_WIDTH, "First Window", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "First Window", NULL, NULL);
     if (window == NULL) {
         glfwTerminate();
         exit(1);
@@ -54,7 +54,6 @@ GLFWwindow* create_window() {
 glm::mat4 getMVPMatrix(glm::vec3 world_coord) {
     computeMatricesFromInputs();
     // model --> world
-    // identity matrix, just put the model orgin as the world origin
     glm::mat4 model = glm::translate(glm::mat4(1.0f), world_coord);
     // world --> camera
     glm::mat4 view = getViewMatrix();
@@ -350,18 +349,19 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
     initPlayControl();
     glFrontFace(GL_CW);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 
     cube* cube1 = make_cube();
 
     //////////// Main Loop ////////////
     while (!glfwWindowShouldClose(window)) {
-        glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
         draw_cubes(cube1);
