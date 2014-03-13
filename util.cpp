@@ -60,14 +60,14 @@ void my_windowSizeCallback(GLFWwindow* win, int w, int h) {
 
 void initPlayControl() {
     // Initial position : on +Z
-    position = glm::vec3( 0, 0, 30 );
+    position = glm::vec3( 0, 0, 50 );
     // Initial horizontal angle : toward -Z
     horizontalAngle = 3.14f;
     // Initial vertical angle : none
     verticalAngle = 0.0f;
     // Initial Field of View
     FoV = 45.0f;
-    speed = 3.0f; // 3 units / second
+    speed = 5.0f; // 3 units / second
     mouseSpeed = 0.005f;
     glfwGetWindowSize(window, &width, &height);
     glfwSetCursorPos(window, width/2.0f, height/2.0f);

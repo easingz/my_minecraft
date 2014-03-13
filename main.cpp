@@ -179,17 +179,8 @@ cube* make_cube() {
 }
 
 void draw_cube(cube* c, glm::vec3 world_coord, const GLfloat* texture_uv_buf, const GLint buf_size) {
-    printf("### start draw_cube\n");
-    for (int i = 0; i < buf_size; i+=2) {
-        printf("    %f %f\n", texture_uv_buf[i], texture_uv_buf[i+1]);
-    }
-
     // need do the transformation in render function.
-    glActiveTexture(GL_TEXTURE0);
-    glBindVertexArray(c->vao);
-
     // TODO: the uniform index should also be an member of struct cube. no need to query here every time.
-    glUseProgram(c->shader_program);
     glm::mat4 mvp = getMVPMatrix(world_coord);
     glUniformMatrix4fv(c->shader_mvp, 1, GL_FALSE, &mvp[0][0]);
 
@@ -198,10 +189,12 @@ void draw_cube(cube* c, glm::vec3 world_coord, const GLfloat* texture_uv_buf, co
     glBufferData(GL_ARRAY_BUFFER, buf_size, texture_uv_buf, GL_DYNAMIC_DRAW);
 
     glDrawArrays(GL_TRIANGLES, 0, c->vertex_size);
-    glBindVertexArray(0);
 }
 
 void draw_cubes(cube* c, GLfloat* cube_textures) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(c->vao);
+    glUseProgram(c->shader_program);
     for (int i = 0; i < 33; i+=6)
         for (int j = 0; j < 33; j+=6)
             for (int k = 0; k < 33; k+=6) {
@@ -209,6 +202,7 @@ void draw_cubes(cube* c, GLfloat* cube_textures) {
                           &cube_textures[((i+j+k) % OBJECT_COUNT) * 72],
                           72);
             }
+    glBindVertexArray(0);
 }
 
 void delete_cube(cube* c) {
