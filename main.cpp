@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include "shader.h"
 #include "util.h"
+#include "game_object.h"
 
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 768
@@ -36,7 +37,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     }
 }
 
-GLFWwindow* create_window() {
+GLFWwindow* create_window(int w, int h) {
     // Know nothing about 4x antialiasing...
     glfwWindowHint(GLFW_SAMPLES, 4);
     // What's the purpose of this...hint glfw we need opengl 3.3 or higher?
@@ -44,7 +45,7 @@ GLFWwindow* create_window() {
     // glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     // What's this....
     // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    GLFWwindow* window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "First Window", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(w, h, "First Window", NULL, NULL);
     if (window == NULL) {
         glfwTerminate();
         exit(1);
@@ -62,60 +63,6 @@ glm::mat4 getMVPMatrix(glm::vec3 world_coord) {
     glm::mat4 projection = getProjectionMatrix();
     return projection * view * model;
 }
-
-static const GLfloat g_vertex_buffer_data[] = {
-    1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-
-    -1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, 1.0f, -1.0f,
-
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f, 
-    -1.0f, 1.0f, -1.0f,
-
-    1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-
-    -1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-
-    1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f, 1.0f,
-
-    // 1.0f, -1.0f, 1.0f,
-    // 1.0f, 1.0f, 1.0f,
-    // -1.0f, -1.0f, -1.0f,
-
-    1.0f, -1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-
-    -1.0f, -1.0f, 1.0f,
-    -1.0f, 1.0f, -1.0f,
-    -1.0f, 1.0f, 1.0f,
-
-    -1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-    -1.0f, 1.0f, -1.0f,
-
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-
-    1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, -1.0f,
-
-    1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f, 1.0f,
-    1.0f, -1.0f, 1.0f,    
-};
 
 // One color for each vertex. They were generated randomly.
 static const GLfloat g_color_buffer_data[] = {
@@ -157,98 +104,6 @@ static const GLfloat g_color_buffer_data[] = {
     0.982f,  0.099f,  0.879f
 };
 
-static const GLfloat g_uv_buffer_data[] = {
-    1.0f, 0.0f,
-    0.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 0.0f,
-    0.0f, 1.0f,
-
-    1.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 1.0f,
-    1.0f, 0.0f,
-    0.0f, 1.0f,
-    1.0f, 1.0f,
-};
-
-#define BLOCK_LEN 1.0f/16.0f
-
-static const GLfloat g_cube_uv_buf_data_base[] = {
-    BLOCK_LEN, 0.0f,
-    0.0f, 0.0f,
-    0.0f, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, 0.0f,
-    0.0f, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, 0.0f,
-    0.0f, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, 0.0f,
-    0.0f, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, 0.0f,
-    0.0f, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, 0.0f,
-    0.0f, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, BLOCK_LEN,
-    BLOCK_LEN, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, BLOCK_LEN,
-    BLOCK_LEN, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, BLOCK_LEN,
-    BLOCK_LEN, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, BLOCK_LEN,
-    BLOCK_LEN, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, BLOCK_LEN,
-    BLOCK_LEN, BLOCK_LEN,
-
-    BLOCK_LEN, 0.0f,
-    0.0f, BLOCK_LEN,
-    BLOCK_LEN, BLOCK_LEN,
-};
-
 GLuint load_cube_texture() {
     GLuint textureID;
     glGenTextures(1, &textureID);
@@ -260,26 +115,19 @@ GLuint load_cube_texture() {
     return textureID;
 }
 
-GLfloat* gen_cube_uv() {
-    // printf("start generate cube uv.\n");
-    int texture_count = 16;
-    int uv_count = sizeof(g_cube_uv_buf_data_base)/sizeof(g_cube_uv_buf_data_base[0]);
-    GLfloat* cube_uv_array = (GLfloat*)malloc(texture_count * sizeof(g_cube_uv_buf_data_base));
-    // printf("%d %d\n", (int)sizeof(g_cube_uv_buf_data_base), (int)sizeof(g_cube_uv_buf_data_base[0]));
-    for (int i = 0; i < texture_count; i++) {
-        // printf("#####: texture uv %d \n", i);
-        for (int j = 0; j < uv_count;) {
-            // uv.x
-            cube_uv_array[i*uv_count + j] = g_cube_uv_buf_data_base[j] + i * BLOCK_LEN;
-            j++;
-            // uv.y
-            cube_uv_array[i*uv_count + j] = g_cube_uv_buf_data_base[j];
-            j++;
-            // printf("       %f %f\n", cube_uv_array[i*uv_count + j - 2], cube_uv_array[i*uv_count + j -1]);
-        }
+GLfloat* gen_cube_uvs() {
+    GLfloat* ret = (GLfloat*)malloc(OBJECT_COUNT * 72 * sizeof(GLfloat));
+    for (int i = 0; i < OBJECT_COUNT; i++) {
+        get_object_texture_uv((t_object) (i + 1), &ret[i * 72]);
     }
-    // printf("cube uv generated!\n");
-    return cube_uv_array;
+
+    // for (int i = 0; i < OBJECT_COUNT; i++) {
+    //     printf("###  texture %d  ###\n", i);
+    //     for (int j = 0; j < 72; j+=2) {
+    //         printf("%f %f\n", texture_uv_data[i * 72 + j], texture_uv_data[i * 72 + j + 1]);
+    //     }
+    // }
+    return ret;
 }
 
 cube* make_cube() {
@@ -315,12 +163,13 @@ cube* make_cube() {
     glUniform1i(shader_sampler, 0);
 
     GLint vertexLoc = glGetAttribLocation(ret_cube->shader_program, "vertex");
+    GLint uvLoc = glGetAttribLocation(ret_cube->shader_program, "vertexUV");
     glEnableVertexAttribArray(vertexLoc);
+    glEnableVertexAttribArray(uvLoc);
+
     glBindBuffer(GL_ARRAY_BUFFER, ret_cube->vertex_buffer);
     glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, GL_FALSE, 0, (void *)0);
 
-    GLint uvLoc = glGetAttribLocation(ret_cube->shader_program, "vertexUV");
-    glEnableVertexAttribArray(uvLoc);
     glBindBuffer(GL_ARRAY_BUFFER, ret_cube->texture_buffer);
     glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
@@ -330,6 +179,11 @@ cube* make_cube() {
 }
 
 void draw_cube(cube* c, glm::vec3 world_coord, const GLfloat* texture_uv_buf, const GLint buf_size) {
+    printf("### start draw_cube\n");
+    for (int i = 0; i < buf_size; i+=2) {
+        printf("    %f %f\n", texture_uv_buf[i], texture_uv_buf[i+1]);
+    }
+
     // need do the transformation in render function.
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(c->vao);
@@ -341,10 +195,20 @@ void draw_cube(cube* c, glm::vec3 world_coord, const GLfloat* texture_uv_buf, co
 
     // Dynamically bind cube texture.
     glBindBuffer(GL_ARRAY_BUFFER, c->texture_buffer);
-    glBufferData(GL_ARRAY_BUFFER, buf_size, texture_uv_buf, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, buf_size, texture_uv_buf, GL_DYNAMIC_DRAW);
 
     glDrawArrays(GL_TRIANGLES, 0, c->vertex_size);
     glBindVertexArray(0);
+}
+
+void draw_cubes(cube* c, GLfloat* cube_textures) {
+    for (int i = 0; i < 33; i+=6)
+        for (int j = 0; j < 33; j+=6)
+            for (int k = 0; k < 33; k+=6) {
+                draw_cube(c, glm::vec3(i - 16, j - 16, k - 16),
+                          &cube_textures[((i+j+k) % OBJECT_COUNT) * 72],
+                          72);
+            }
 }
 
 void delete_cube(cube* c) {
@@ -356,23 +220,15 @@ void delete_cube(cube* c) {
     free(c);
 }
 
-void draw_cubes(cube* c, GLfloat* cube_textures) {
-    for (int i = 0; i < 33; i+=6)
-        for (int j = 0; j < 33; j+=6)
-            for (int k = 0; k < 33; k+=6) {
-                draw_cube(c, glm::vec3(i - 16, j - 16, k - 16), cube_textures+((i+j+k)%16)*72, sizeof(g_cube_uv_buf_data_base));
-                // draw_cube(c, glm::vec3(i - 16, j - 16, k - 16), g_cube_uv_buf_data_base, sizeof(g_cube_uv_buf_data_base));
-            }
-    // draw_cube(c, glm::vec3(0, 0, 0));
-}
-
 int main(int argc, char **argv) {
     // create window
     if (!glfwInit()) {
         return -1;
     }
     glfwSetErrorCallback(error_callback);
-    window = create_window();
+    int width = WINDOW_WIDTH;
+    int height = WINDOW_HEIGHT;
+    window = create_window(width, height);
     // Set 'window' as the opengl context
     glfwMakeContextCurrent(window);
 
@@ -392,14 +248,16 @@ int main(int argc, char **argv) {
     glDepthFunc(GL_LESS);
 
     load_cube_texture();
-    GLfloat* cube_textures = gen_cube_uv();
+    GLfloat* texture_uv_data = gen_cube_uvs();
     cube* c = make_cube();
 
     //////////// Main Loop ////////////
     while (!glfwWindowShouldClose(window)) {
+        glfwGetFramebufferSize(window, &width, &height);
+        glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-        draw_cubes(c, cube_textures);
+        draw_cubes(c, texture_uv_data);
 
         glfwSwapBuffers(window);
         // Get the events, non-block.
@@ -410,11 +268,10 @@ int main(int argc, char **argv) {
 
     // Cleanup
     delete_cube(c);
-    free(cube_textures);
+    free(texture_uv_data);
 
     // close window
     glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }
-
