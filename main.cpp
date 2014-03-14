@@ -148,7 +148,7 @@ void draw_cubes(cube* c) {
         for (int j = 0; j < 33; j+=6)
             for (int k = 0; k < 33; k+=6) {
                 get_object_uvs((t_Object)((i+j+k) % OBJECT_COUNT), &object_uvs, &uv_size);
-                draw_cube(c, glm::vec3(i - 16, j - 16, k - 16), object_uvs, uv_size);
+                draw_cube(c, glm::vec3(i - 16, j - 16, - k), object_uvs, uv_size);
             }
     glBindVertexArray(0);
 }
@@ -170,7 +170,7 @@ void draw_chunk(cube* c, MapChunk* mc) {
     MapUnit* mu;
     GLfloat* object_uvs;
     int uv_size;
-    // origin:left-front-bottom position
+    // origin:left-back-bottom position
     glm::vec3 chunk_off(mc->dx * 256, mc->dy *256, mc->dz * 256);
     for (int i = 0; i < mc->pos; i++) {
         mu = &(mc->data[i]);
@@ -210,7 +210,7 @@ int main(int argc, char **argv) {
     load_cube_texture();
     init_object_uvs();
     cube* c = make_cube();
-    MapChunk* mc = create_random_chunk();
+    MapChunk* mc = create_random_chunk(0, 0, -1);
 
     //////////// Main Loop ////////////
     while (!glfwWindowShouldClose(window)) {
