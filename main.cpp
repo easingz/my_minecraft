@@ -4,12 +4,13 @@
 #include <glm/glm.hpp>
 #define GLM_FORCE_RADIANS
 #include <glm/gtc/matrix_transform.hpp>
-
+#include <glm/gtx/transform.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 #include "shader.h"
 #include "util.h"
 #include "game_object.h"
+#include "map.h"
 
 #define WINDOW_WIDTH 1024
 #define WINDOW_HEIGHT 768
@@ -56,7 +57,8 @@ GLFWwindow* create_window(int w, int h) {
 glm::mat4 getMVPMatrix(glm::vec3 world_coord) {
     computeMatricesFromInputs();
     // model --> world
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), world_coord);
+    // T * R * S
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), world_coord) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f));
     // world --> camera
     glm::mat4 view = getViewMatrix();
     // camera --> FoV
@@ -73,21 +75,6 @@ GLuint load_cube_texture() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     load_png_texture("./textures/texture.png");
     return textureID;
-}
-
-GLfloat* gen_cube_uvs() {
-    GLfloat* ret = (GLfloat*)malloc(OBJECT_COUNT * 72 * sizeof(GLfloat));
-    for (int i = 0; i < OBJECT_COUNT; i++) {
-        get_object_texture_uv((t_object) (i + 1), &ret[i * 72]);
-    }
-
-    // for (int i = 0; i < OBJECT_COUNT; i++) {
-    //     printf("###  texture %d  ###\n", i);
-    //     for (int j = 0; j < 72; j+=2) {
-    //         printf("%f %f\n", texture_uv_data[i * 72 + j], texture_uv_data[i * 72 + j + 1]);
-    //     }
-    // }
-    return ret;
 }
 
 cube* make_cube() {
@@ -151,16 +138,17 @@ void draw_cube(cube* c, glm::vec3 world_coord, const GLfloat* texture_uv_buf, co
     glDrawArrays(GL_TRIANGLES, 0, c->vertex_size);
 }
 
-void draw_cubes(cube* c, GLfloat* cube_textures) {
+void draw_cubes(cube* c) {
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(c->vao);
     glUseProgram(c->shader_program);
+    GLfloat* object_uvs;
+    int uv_size;
     for (int i = 0; i < 33; i+=6)
         for (int j = 0; j < 33; j+=6)
             for (int k = 0; k < 33; k+=6) {
-                draw_cube(c, glm::vec3(i - 16, j - 16, k - 16),
-                          &cube_textures[((i+j+k) % OBJECT_COUNT) * 72],
-                          72*sizeof(GLfloat));
+                get_object_uvs((t_Object)((i+j+k) % OBJECT_COUNT), &object_uvs, &uv_size);
+                draw_cube(c, glm::vec3(i - 16, j - 16, k - 16), object_uvs, uv_size);
             }
     glBindVertexArray(0);
 }
@@ -172,6 +160,23 @@ void delete_cube(cube* c) {
     glDeleteVertexArrays(1, &c->vao);
     glDeleteProgram(c->shader_program);
     free(c);
+}
+
+void draw_chunk(cube* c, MapChunk* mc) {
+    // TODO(important!): hidden faces removal
+    glActiveTexture(GL_TEXTURE0);
+    glBindVertexArray(c->vao);
+    glUseProgram(c->shader_program);
+    MapUnit* mu;
+    GLfloat* object_uvs;
+    int uv_size;
+    glm::vec3 chunk_off(mc->dx * 256 - 128, mc->dy *256, mc->dz * 256 -128);
+    for (int i = 0; i < mc->pos; i++) {
+        mu = &mc->data[i];
+        get_object_uvs((t_Object)mu->u.w, &object_uvs, &uv_size);
+        draw_cube(c, glm::vec3(mu->u.x, mu->u.y, mu->u.z) + chunk_off, object_uvs, uv_size);
+    }
+    glBindVertexArray(0);
 }
 
 int main(int argc, char **argv) {
@@ -202,8 +207,9 @@ int main(int argc, char **argv) {
     glDepthFunc(GL_LESS);
 
     load_cube_texture();
-    GLfloat* texture_uv_data = gen_cube_uvs();
+    init_object_uvs();
     cube* c = make_cube();
+    MapChunk* mc = create_random_chunk();
 
     //////////// Main Loop ////////////
     while (!glfwWindowShouldClose(window)) {
@@ -211,7 +217,8 @@ int main(int argc, char **argv) {
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
-        draw_cubes(c, texture_uv_data);
+        // draw_cubes(c);
+        draw_chunk(c, mc);
 
         glfwSwapBuffers(window);
         // Get the events, non-block.
@@ -222,7 +229,8 @@ int main(int argc, char **argv) {
 
     // Cleanup
     delete_cube(c);
-    free(texture_uv_data);
+    delete_object_uvs();
+    delete_chunk(mc);
 
     // close window
     glfwDestroyWindow(window);

@@ -22,13 +22,15 @@ typedef enum {
     CUBE_15,
     CUBE_16,
     END,
-} t_object;
+} t_Object;
 
-#define OBJECT_COUNT (END - CUBE_1)
+#define OBJECT_COUNT END
 
 extern const int object_faces[256][6];
 extern const GLfloat g_vertex_buffer_data[108];
 
-void get_object_texture_uv(t_object object, GLfloat* uv_data);
+void init_object_uvs();
+void get_object_uvs(const t_Object, GLfloat**, int*);
+void delete_object_uvs();
 
 #endif /* _GAME_OBJECT_H_ */

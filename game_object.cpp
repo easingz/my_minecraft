@@ -1,6 +1,9 @@
 // -*- Mode: c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
 #include <stdio.h>
+#include <stdlib.h>
 #include "game_object.h"
+
+static GLfloat* object_uvs;
 
 // Every object has 6 faces: front, back, left, right, top, bottom
 // the 256x256 texture is divided into 16x16 tiles.
@@ -82,7 +85,7 @@ const GLfloat g_vertex_buffer_data[108] = {
   1.0f, -1.0f, 1.0f,
 };
 
-void get_object_texture_uv(t_object object, GLfloat* uv_buf) {
+static void gen_object_texture_uv(t_Object object, GLfloat* uv_buf) {
   static const GLfloat TILE_W = 1.0f/16.0f;
   static const GLfloat face_uv_base[12] = {
     TILE_W, 0,
@@ -108,4 +111,27 @@ void get_object_texture_uv(t_object object, GLfloat* uv_buf) {
       // printf("   %f %f\n", *(uv_buf + i * 12 + j - 2), *(uv_buf + i * 12 + j - 1));
     }
   }
+}
+
+void init_object_uvs() {
+  object_uvs = (GLfloat*)malloc(OBJECT_COUNT * 72 * sizeof(GLfloat));
+  for (int i = 0; i < OBJECT_COUNT; i++) {
+    gen_object_texture_uv((t_Object)i, &object_uvs[i * 72]);
+  }
+
+  // for (int i = 0; i < OBJECT_COUNT; i++) {
+  //     printf("###  texture %d  ###\n", i);
+  //     for (int j = 0; j < 72; j+=2) {
+  //         printf("%f %f\n", texture_uv_data[i * 72 + j], texture_uv_data[i * 72 + j + 1]);
+  //     }
+  // }
+}
+
+void get_object_uvs(t_Object object, GLfloat** data, int* size) {
+  *data = object_uvs + (int)object * 72;
+  *size = 288;
+}
+
+void delete_object_uvs() {
+  free(object_uvs);
 }

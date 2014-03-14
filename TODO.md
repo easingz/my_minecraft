@@ -1,0 +1,4 @@
+- [ ] implement simple world chunk (256x256).
+- [ ] hidden faces removal.
+- [ ] implement collision detection.
+- [ ] implement log module.

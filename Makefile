@@ -11,7 +11,7 @@ endif
 LDFLAGS += -L$(LIB_DIR)
 
 SRC := \
-main.cpp shader.cpp util.cpp lodepng/lodepng.c game_object.cpp
+main.cpp shader.cpp util.cpp lodepng/lodepng.c game_object.cpp map.cpp
 
 TARGET := main
 all : $(TARGET)

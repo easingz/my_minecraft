@@ -60,7 +60,7 @@ void my_windowSizeCallback(GLFWwindow* win, int w, int h) {
 
 void initPlayControl() {
     // Initial position : on +Z
-    position = glm::vec3( 0, 0, 50 );
+    position = glm::vec3( 0, 2, 30 );
     // Initial horizontal angle : toward -Z
     horizontalAngle = 3.14f;
     // Initial vertical angle : none
