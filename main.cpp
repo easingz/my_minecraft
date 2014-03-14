@@ -170,9 +170,10 @@ void draw_chunk(cube* c, MapChunk* mc) {
     MapUnit* mu;
     GLfloat* object_uvs;
     int uv_size;
-    glm::vec3 chunk_off(mc->dx * 256 - 128, mc->dy *256, mc->dz * 256 -128);
+    // origin:left-front-bottom position
+    glm::vec3 chunk_off(mc->dx * 256, mc->dy *256, mc->dz * 256);
     for (int i = 0; i < mc->pos; i++) {
-        mu = &mc->data[i];
+        mu = &(mc->data[i]);
         get_object_uvs((t_Object)mu->u.w, &object_uvs, &uv_size);
         draw_cube(c, glm::vec3(mu->u.x, mu->u.y, mu->u.z) + chunk_off, object_uvs, uv_size);
     }
