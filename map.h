@@ -6,14 +6,15 @@
 typedef union {
   unsigned int value;
   struct {
-    unsigned char x; // [0, 255]
-    unsigned char y; // [0, 255]
-    unsigned char z; // [0, 255]
+    // [0, CHUNK_SIZE]
+    unsigned char x;
+    unsigned char y;
+    unsigned char z;
     unsigned char w;
   } u;
 } MapUnit;
 
-// chunk is 256x256x256 big cube containing MapUnits.
+// chunk is CHUNK_SIZE^3 big cube containing MapUnits.
 typedef struct {
   int dx;
   int dy;
@@ -22,6 +23,8 @@ typedef struct {
   int pos; // used data marker, -1 for not used
   MapUnit* data;
 } MapChunk;
+
+#define CHUNK_SIZE 32
 
 void delete_chunk(MapChunk*);
 MapChunk* create_random_chunk(int, int, int);

@@ -171,7 +171,7 @@ void draw_chunk(cube* c, MapChunk* mc) {
     GLfloat* object_uvs;
     int uv_size;
     // origin:left-back-bottom position
-    glm::vec3 chunk_off(mc->dx * 256, mc->dy *256, mc->dz * 256);
+    glm::vec3 chunk_off(mc->dx * CHUNK_SIZE, mc->dy * CHUNK_SIZE, mc->dz * CHUNK_SIZE);
     for (int i = 0; i < mc->pos; i++) {
         mu = &(mc->data[i]);
         get_object_uvs((t_Object)mu->u.w, &object_uvs, &uv_size);
@@ -210,7 +210,11 @@ int main(int argc, char **argv) {
     load_cube_texture();
     init_object_uvs();
     cube* c = make_cube();
-    MapChunk* mc = create_random_chunk(0, 0, -1);
+    MapChunk* mc[4];
+    mc[0] = create_random_chunk(0, 0, -1);
+    mc[1] = create_random_chunk(-1, 0, -1);
+    mc[2] = create_random_chunk(-1, 0, 0);
+    mc[3] = create_random_chunk(0, 0, 0);
 
     //////////// Main Loop ////////////
     while (!glfwWindowShouldClose(window)) {
@@ -219,7 +223,8 @@ int main(int argc, char **argv) {
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
         // draw_cubes(c);
-        draw_chunk(c, mc);
+        for (int i = 0; i < 4; i++)
+            draw_chunk(c, mc[i]);
 
         glfwSwapBuffers(window);
         // Get the events, non-block.
@@ -231,7 +236,8 @@ int main(int argc, char **argv) {
     // Cleanup
     delete_cube(c);
     delete_object_uvs();
-    delete_chunk(mc);
+    for (int i = 0; i < 4; i++)
+        delete_chunk(mc[i]);
 
     // close window
     glfwDestroyWindow(window);

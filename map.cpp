@@ -12,17 +12,18 @@ void chunk_grow(MapChunk*);
 // param: origin of chunk, one chunk as 1 unit
 MapChunk* create_random_chunk(int x, int y, int z) {
   MapChunk* mc = create_and_init_chunk(x, y, z);
+  // Following uses in-chunk coord-system.
   // the grass ground
-  for (int i = 0; i < 64; i++) {
-    for (int j = 192; j < 256; j++) {
+  for (int i = 0; i < CHUNK_SIZE; i++) {
+    for (int j = 0; j < CHUNK_SIZE; j++) {
       mapchunk_set_unit(mc, i, 0, j, CUBE_1);
     }
   }
 
-  // generate 1024 random units
-  for (int i = 0; i < 500; i++) {
+  // generate 200 random units
+  for (int i = 0; i < 200; i++) {
     mapchunk_set_unit(mc,
-		      rand() % 256, rand() % 255 + 1, rand() % 256,
+		      rand() % CHUNK_SIZE, rand() % (CHUNK_SIZE - 1) + 1, rand() % CHUNK_SIZE,
 		      rand() % OBJECT_COUNT);
   }
   return mc;
@@ -30,10 +31,10 @@ MapChunk* create_random_chunk(int x, int y, int z) {
 
 // (0, 0, 0) is at the left-back-bottom corner of chunck, same coord-system as OpenGL.
 void mapchunk_set_unit(MapChunk* mc, int x, int y, int z, int w) {
-  assert(0 <= x && x < 256);
-  assert(0 <= y && y < 256);
-  assert(0 <= z && z < 256);
-  assert(0 <= w && w < 256);
+  assert(0 <= x && x < CHUNK_SIZE);
+  assert(0 <= y && y < CHUNK_SIZE);
+  assert(0 <= z && z < CHUNK_SIZE);
+  assert(0 <= w && w < CHUNK_SIZE);
   // TODO(later): check if already exists at (x, y, z)
   // unsigned int u = (w << 24) | (z << 16) | (y << 8) | x;
 
@@ -54,7 +55,8 @@ void delete_chunk(MapChunk* mc) {
   free(mc);
 }
 
-#define INIT_CHUNK_DATA_SIZE 65536
+#define INIT_CHUNK_DATA_SIZE 2000
+#define CHUNK_DATA_INCR_STEP 256
 MapChunk* create_and_init_chunk(int x, int y, int z) {
   MapChunk* mc = (MapChunk*) malloc(sizeof(MapChunk));
   mc->data = (MapUnit*) malloc(INIT_CHUNK_DATA_SIZE * sizeof(MapUnit));
@@ -67,6 +69,6 @@ MapChunk* create_and_init_chunk(int x, int y, int z) {
 }
 
 void chunk_grow(MapChunk* mc) {
-  mc->size += 1000;
+  mc->size += CHUNK_DATA_INCR_STEP;
   mc->data = (MapUnit*) realloc(mc->data, mc->size * sizeof(MapUnit));
 }
