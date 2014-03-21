@@ -1,6 +1,8 @@
 #ifndef _MAP_H_
 #define _MAP_H_
 
+#include "config.h"
+
 // map unit represents a concrete cube postion and style.
 // follow OpenGl coordinate system.
 typedef union {
@@ -23,8 +25,6 @@ typedef struct {
   int pos; // used data marker, -1 for not used
   MapUnit* data;
 } MapChunk;
-
-#define CHUNK_SIZE 32
 
 void delete_chunk(MapChunk*);
 MapChunk* create_random_chunk(int, int, int);

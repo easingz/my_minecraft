@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "lodepng/lodepng.h"
 #include "util.h"
+#include "log.h"
 
 static void flip_image_vertical(
     unsigned char *data, unsigned int width, unsigned int height)
@@ -29,7 +30,7 @@ void load_png_texture(const char *file_name) {
     unsigned int width, height;
     error = lodepng_decode32_file(&data, &width, &height, file_name);
     if (error) {
-        fprintf(stderr, "error %u: %s\n", error, lodepng_error_text(error));
+        LOG_MUST("error %u: %s\n", error, lodepng_error_text(error));
     }
     flip_image_vertical(data, width, height);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -103,7 +104,7 @@ void computeMatricesFromInputs(){
         verticalAngle   += mouseSpeed * float( height/2 - ypos );
 
         // TODO: add log function for debug.
-        // printf("w: %d h: %d xpos: %f ypos: %f h: %f v %f\n", width, height, xpos, ypos, horizontalAngle, verticalAngle);
+        LOG_SPECIAL("w: %d h: %d xpos: %f ypos: %f h: %f v %f\n", width, height, xpos, ypos, horizontalAngle, verticalAngle);
 
         // lock it to disable upside-down.
         if (verticalAngle >= 3.14f/2) verticalAngle = 3.14f/2;

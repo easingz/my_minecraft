@@ -11,9 +11,9 @@
 #include "util.h"
 #include "game_object.h"
 #include "map.h"
+#include "config.h"
+#include "log.h"
 
-#define WINDOW_WIDTH 1024
-#define WINDOW_HEIGHT 768
 GLFWwindow* window = NULL;
 
 typedef struct {
@@ -78,7 +78,7 @@ GLuint load_cube_texture() {
 }
 
 cube* make_cube() {
-    // printf("start make cube");
+    LOG_SPECIAL("start make cube.\n");
     cube* ret_cube = (cube*) malloc(sizeof(cube));
     GLuint vao;
     glGenVertexArrays(1, &vao);
@@ -121,7 +121,7 @@ cube* make_cube() {
     glVertexAttribPointer(uvLoc, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
     glBindVertexArray(0);
-    // printf("make cube done!\n");
+    LOG_SPECIAL("make cube done!\n");
     return ret_cube;
 }
 

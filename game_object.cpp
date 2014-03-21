@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "game_object.h"
+#include "log.h"
 
 static GLfloat* object_uvs;
 
@@ -96,7 +97,7 @@ static void gen_object_texture_uv(t_Object object, GLfloat* uv_buf) {
     TILE_W, TILE_W
   };
   const int* face_tiles = &object_faces[object][0];
-  // printf("### texture %d ###\n", (int) object);
+  LOG_SPECIAL("### texture %d ###\n", (int) object);
   for (int i = 0; i < 6; i++) {
     for (unsigned int j = 0; j < sizeof(face_uv_base)/sizeof(face_uv_base[0]);) {
       // uv.x
@@ -108,7 +109,7 @@ static void gen_object_texture_uv(t_Object object, GLfloat* uv_buf) {
       // (face_tiles[i] / 16) means which row it is in texture
       *(uv_buf + i * 12 + j) = (face_tiles[i] / 16) * TILE_W + face_uv_base[j];
       j++;
-      // printf("   %f %f\n", *(uv_buf + i * 12 + j - 2), *(uv_buf + i * 12 + j - 1));
+      LOG_SPECIAL("   %f %f\n", *(uv_buf + i * 12 + j - 2), *(uv_buf + i * 12 + j - 1));
     }
   }
 }
@@ -119,12 +120,14 @@ void init_object_uvs() {
     gen_object_texture_uv((t_Object)i, &object_uvs[i * 72]);
   }
 
-  // for (int i = 0; i < OBJECT_COUNT; i++) {
-  //     printf("###  texture %d  ###\n", i);
-  //     for (int j = 0; j < 72; j+=2) {
-  //         printf("%f %f\n", texture_uv_data[i * 72 + j], texture_uv_data[i * 72 + j + 1]);
-  //     }
-  // }
+#ifdef DEBUG_ENABLED
+  for (int i = 0; i < OBJECT_COUNT; i++) {
+      LOG_SPECIAL("###  texture %d  ###\n", i);
+      for (int j = 0; j < 72; j+=2) {
+          LOG_SPECIAL("%f %f\n", object_uvs[i * 72 + j], object_uvs[i * 72 + j + 1]);
+      }
+  }
+#endif
 }
 
 void get_object_uvs(t_Object object, GLfloat** data, int* size) {
