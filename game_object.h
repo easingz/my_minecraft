@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 
 typedef enum {
-    EMPTY,
+    CUBE_0,
     CUBE_1,
     CUBE_2,
     CUBE_3,
@@ -26,11 +26,23 @@ typedef enum {
 
 #define OBJECT_COUNT END
 
-extern const int object_faces[256][6];
+/* vertex data for all six cube faces. */
 extern const GLfloat g_vertex_buffer_data[108];
 
+/**
+ * Generate game object UV coords at one time.
+ */
 void init_object_uvs();
-void get_object_uvs(const t_Object, GLfloat**, int*);
+
+/**
+ * Get certain game @object UV data, which is passed out as @uvData, and the buffer
+ * size is @size byte.
+ */
+void get_object_uvs(const t_Object object, GLfloat** uvData, int* size);
+
+/**
+ * Clear generated ojbect UV coords by @init_object_uvs().
+ */
 void delete_object_uvs();
 
 #endif /* _GAME_OBJECT_H_ */

@@ -1,4 +1,4 @@
-// -*- Mode: c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+// -*- Mode: c++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 #include <stdio.h>
 #include <stdlib.h>
 #include "game_object.h"
@@ -6,12 +6,15 @@
 
 static GLfloat* object_uvs;
 
-// Every object has 6 faces: front, back, left, right, top, bottom
-// the 256x256 texture is divided into 16x16 tiles.
-// faces are represented as index of tile, which counted from bottom->up and left->right.
-const int object_faces[256][6] = {
+/**
+ * Every object cube has 6 faces: {front, back, left, right, top, bottom}
+ * the 256x256 texture is divided into 16x16 tiles.
+ * faces are represented as index of tile, which counted from
+ * left->right then bottom->up.
+ */
+const int object_faces_tile_index[OBJECT_COUNT][6] = {
   {0, 0, 0, 0, 0, 0},
-  {16, 16, 16, 16, 32, 0},
+  {16, 16, 16, 16, 32, 0}, /* grass ground */
   {1, 1, 1, 1, 1, 1},
   {2, 2, 2, 2, 2, 2},
   {3, 3, 3, 3, 3, 3},
@@ -96,7 +99,7 @@ static void gen_object_texture_uv(t_Object object, GLfloat* uv_buf) {
     0, TILE_W,
     TILE_W, TILE_W
   };
-  const int* face_tiles = &object_faces[object][0];
+  const int* face_tiles = &object_faces_tile_index[object][0];
   LOG_SPECIAL("### texture %d ###\n", (int) object);
   for (int i = 0; i < 6; i++) {
     for (unsigned int j = 0; j < sizeof(face_uv_base)/sizeof(face_uv_base[0]);) {

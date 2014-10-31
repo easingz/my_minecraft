@@ -10,8 +10,7 @@ extern GLFWwindow* window;
 void load_png_texture(const char *file_name);
 
 void initPlayControl();
-void computeMatricesFromInputs();
-glm::mat4 getViewMatrix();
-glm::mat4 getProjectionMatrix();
+
+glm::mat4 getMVPMatrix(glm::vec3 world_coord);
 
 #endif

@@ -6,6 +6,7 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 #include "lodepng/lodepng.h"
 #include "util.h"
 #include "log.h"
@@ -40,10 +41,10 @@ void load_png_texture(const char *file_name) {
 glm::mat4 ViewMatrix;
 glm::mat4 ProjectionMatrix;
 
-glm::mat4 getViewMatrix(){
+static glm::mat4 getViewMatrix(){
         return ViewMatrix;
 }
-glm::mat4 getProjectionMatrix(){
+static glm::mat4 getProjectionMatrix(){
         return ProjectionMatrix;
 }
 
@@ -51,11 +52,11 @@ glm::vec3 position;
 float horizontalAngle, verticalAngle, FoV, speed, mouseSpeed;
 int width, height;
 
-void my_scrollCallback(GLFWwindow* w, double x, double y){
+static void my_scrollCallback(GLFWwindow* w, double x, double y){
     FoV = FoV - 0.1 * y;
 }
 
-void my_windowSizeCallback(GLFWwindow* win, int w, int h) {
+static void my_windowSizeCallback(GLFWwindow* win, int w, int h) {
     width = w; height = h;
 }
 
@@ -76,9 +77,7 @@ void initPlayControl() {
     glfwSetWindowSizeCallback(window, my_windowSizeCallback);
 }
 
-
-
-void computeMatricesFromInputs(){
+static void computeMatricesFromInputs(){
 
         // glfwGetTime is called only once, the first time this function is called
         static double lastTime = glfwGetTime();
@@ -157,4 +156,15 @@ void computeMatricesFromInputs(){
         lastTime = currentTime;
 }
 
+glm::mat4 getMVPMatrix(glm::vec3 world_coord) {
+    computeMatricesFromInputs();
+    // model --> world
+    // T * R * S
+    glm::mat4 model = glm::translate(glm::mat4(1.0f), world_coord) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f));
+    // world --> camera
+    glm::mat4 view = getViewMatrix();
+    // camera --> FoV
+    glm::mat4 projection = getProjectionMatrix();
+    return projection * view * model;
+}
 

@@ -38,11 +38,11 @@ double getTimeDiff(const struct timeval* tv1, const struct timeval* tv2);
 
 #define PROFILE_STOP(NAME) \
     do {\
-        struct timeval PROFILER_NAME(NAME, 2);\
-        gettimeofday(&PROFILER_NAME(NAME, 2), NULL);\
-        double d = getTimeDiff(&PROFILER_NAME(NAME, 1),\
-                                           &PROFILER_NAME(NAME, 2));\
-        LOG_PROFILER("Profiler result for %s: %f s", QUOTE(NAME), d);\
+        struct timeval PROFILER_NAME(NAME, 2);			 \
+        gettimeofday(&PROFILER_NAME(NAME, 2), NULL);		   \
+        double d = getTimeDiff(&PROFILER_NAME(NAME, 1),		\
+			       &PROFILER_NAME(NAME, 2));	       \
+        LOG_PROFILER("Profiler result for %s: %f s", QUOTE(NAME), d);  \
     } while(0)
 
 #define PROFILE_START_TMP() PROFILE_START_N(tmp)

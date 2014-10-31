@@ -36,9 +36,6 @@ endif
 
 endif
 
-SRC := \
-main.cpp shader.cpp util.cpp lodepng/lodepng.c game_object.cpp map.cpp log.cpp profiler.cpp
-
 TARGET := main
 all : $(TARGET)
 

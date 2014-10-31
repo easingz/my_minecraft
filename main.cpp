@@ -54,18 +54,6 @@ GLFWwindow* create_window(int w, int h) {
     return window;
 }
 
-glm::mat4 getMVPMatrix(glm::vec3 world_coord) {
-    computeMatricesFromInputs();
-    // model --> world
-    // T * R * S
-    glm::mat4 model = glm::translate(glm::mat4(1.0f), world_coord) * glm::scale(glm::vec3(0.5f, 0.5f, 0.5f));
-    // world --> camera
-    glm::mat4 view = getViewMatrix();
-    // camera --> FoV
-    glm::mat4 projection = getProjectionMatrix();
-    return projection * view * model;
-}
-
 GLuint load_cube_texture() {
     GLuint textureID;
     glGenTextures(1, &textureID);

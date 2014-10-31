@@ -4,7 +4,7 @@
 #include "config.h"
 
 // map unit represents a concrete cube postion and style.
-// follow OpenGl coordinate system.
+// follow OpenGL coordinate system.
 typedef union {
   unsigned int value;
   struct {
@@ -26,7 +26,7 @@ typedef struct {
   MapUnit* data;
 } MapChunk;
 
-void delete_chunk(MapChunk*);
-MapChunk* create_random_chunk(int, int, int);
+void delete_chunk(MapChunk* chunk);
+MapChunk* create_random_chunk(int x, int y, int z);
 
 #endif /* _MAP_H_ */
